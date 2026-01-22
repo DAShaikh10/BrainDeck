@@ -9,10 +9,14 @@ import { StatsDisplay } from "@/components/StatsDisplay";
 import type { ConfidenceScore } from "@/types/flashcard";
 
 export default function Home() {
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [reviewedCardIds, setReviewedCardIds] = useState<Set<string>>(new Set());
   const [sessionComplete, setSessionComplete] = useState(false);
 
   const { dueCards, stats, isLoading, reviewFlashCard, resetDeck } = useFlashCards();
+
+  // Filter out already reviewed cards from this session
+  const sessionCards = dueCards.filter((card) => !reviewedCardIds.has(card.id));
+  const currentCard = sessionCards[0];
 
   if (isLoading) {
     return (
@@ -23,27 +27,22 @@ export default function Home() {
   }
 
   const handleReview = (confidence: ConfidenceScore) => {
-    const currentCard = dueCards[currentCardIndex];
     if (!currentCard) return;
 
     reviewFlashCard(currentCard.id, confidence);
 
-    // Remove the reviewed card from the current session view
-    // by checking if there are more cards to review
-    const remainingCards = dueCards.length - 1;
+    // Mark this card as reviewed in the current session
+    setReviewedCardIds((prev) => new Set(prev).add(currentCard.id));
 
-    // Move to next card or complete session
-    if (currentCardIndex < remainingCards) {
-      // Stay at current index, next card will shift into place
-      setCurrentCardIndex(currentCardIndex);
-    } else {
-      // Session complete
+    // Check if this was the last card
+    if (sessionCards.length <= 1) {
       setSessionComplete(true);
     }
+    // Otherwise, the next card will automatically appear at index 0
   };
 
   const handleRestart = () => {
-    setCurrentCardIndex(0);
+    setReviewedCardIds(new Set());
     setSessionComplete(false);
   };
 
@@ -82,7 +81,7 @@ export default function Home() {
             <div className="text-6xl mb-6">✅</div>
             <h2 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">Session Complete!</h2>
             <p className="text-zinc-600 dark:text-zinc-400 mb-8">
-              You&apos;ve reviewed all {dueCards.length} cards due today.
+              You&apos;ve reviewed all {reviewedCardIds.size} cards due today.
             </p>
             <button
               onClick={handleRestart}
@@ -98,21 +97,21 @@ export default function Home() {
               <div className="flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-400 mb-2">
                 <span>Progress</span>
                 <span>
-                  {currentCardIndex + 1} / {dueCards.length}
+                  {reviewedCardIds.size + 1} / {dueCards.length}
                 </span>
               </div>
               <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-linear-to-r from-blue-500 to-purple-600 transition-all duration-300"
                   style={{
-                    width: `${((currentCardIndex + 1) / dueCards.length) * 100}%`,
+                    width: `${((reviewedCardIds.size + 1) / dueCards.length) * 100}%`,
                   }}
                 />
               </div>
             </div>
 
             {/* Current Card */}
-            {dueCards[currentCardIndex] && <FlashCard card={dueCards[currentCardIndex]} onReview={handleReview} />}
+            {currentCard && <FlashCard card={currentCard} onReview={handleReview} />}
           </>
         )}
 
