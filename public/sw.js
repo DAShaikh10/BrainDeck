@@ -18,8 +18,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "BrainDeck";
   const options = {
     body: data.body || "Time to study your flashcards!",
-    icon: "/icon-192x192.png",
-    badge: "/icon-192x192.png",
+    icon: "/icon-192.svg",
+    badge: "/icon-192.svg",
     vibrate: [200, 100, 200],
     data: {
       url: data.url || "/",
