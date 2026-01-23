@@ -57,13 +57,13 @@ export class NotificationService {
 
       try {
         this.registration = await Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
-        debug.log("✅ Service Worker ready for notifications");
+        debug.log("Service Worker ready for notifications");
       } catch (readyError) {
-        debug.log("⚠️ Service Worker not ready, continuing without it:", readyError);
+        debug.log("Service Worker not ready, continuing without it:", readyError);
         // Continue anyway - Notification API will still work
       }
     } catch (error) {
-      debug.warn("❌ Service Worker initialization error:", error);
+      debug.warn("Service Worker initialization error:", error);
       // In development, service worker may not be active, but Notification API will still work
     }
   }
@@ -93,7 +93,7 @@ export class NotificationService {
     // Store reminder in localStorage for persistence
     const reminderData = JSON.stringify({ hour, minute, nextReminder: reminderTime.toISOString() });
     localStorage.setItem("braindeck-reminder", reminderData);
-    debug.log("✅ Saved reminder to localStorage:", reminderData);
+    debug.log("Saved reminder to localStorage:", reminderData);
     debug.log("Verification - localStorage now contains:", localStorage.getItem("braindeck-reminder"));
 
     // Schedule the notification
@@ -131,7 +131,7 @@ export class NotificationService {
             url: "/",
           },
         });
-        debug.log("✅ Notification shown via Service Worker");
+        debug.log("Notification shown via Service Worker");
       } else {
         // Fallback to regular Notification API
         debug.log("Creating Notification with options:", { title, body, icon });
@@ -145,11 +145,11 @@ export class NotificationService {
         });
 
         notification.onshow = () => {
-          debug.log("✅ Notification displayed successfully");
+          debug.log("Notification displayed successfully");
         };
 
         notification.onerror = (error) => {
-          debug.error("❌ Notification error:", error);
+          debug.error("Notification error:", error);
           // Show in-app toast instead
           showToast(title, body, "info");
         };
@@ -160,12 +160,12 @@ export class NotificationService {
           notification.close();
         };
 
-        debug.log("✅ Notification shown via Notification API (fallback)");
+        debug.log("Notification shown via Notification API (fallback)");
         // Show in-app toast as visual confirmation (since browser may suppress notification)
         showToast(title, body, "success");
       }
     } catch (error) {
-      debug.error("❌ Failed to show notification:", error);
+      debug.error("Failed to show notification:", error);
       // Show browser alert as last resort
       alert(`${title}\n\n${body}\n\n(Notification API error)`);
     }

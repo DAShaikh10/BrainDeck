@@ -9,6 +9,7 @@ export function NotificationSettings() {
   const [isEnabled, setIsEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState({ hour: 9, minute: 0 });
   const [showSettings, setShowSettings] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     debug.log("NotificationSettings mounted - initializing...");
@@ -61,6 +62,8 @@ export function NotificationSettings() {
         }
       } catch (error) {
         debug.error("Failed to initialize notification settings:", error);
+      } finally {
+        setIsInitializing(false);
       }
     };
 
@@ -115,6 +118,25 @@ export function NotificationSettings() {
     const period = hour >= 12 ? "PM" : "AM";
     return `${h}:${m} ${period}`;
   };
+
+  // Loading skeleton while initializing
+  if (isInitializing) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 animate-pulse">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-8 h-8 bg-zinc-300 dark:bg-zinc-700 rounded"></div>
+            <div className="flex-1">
+              <div className="h-5 bg-zinc-300 dark:bg-zinc-700 rounded w-40 mb-2"></div>
+              <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded w-32"></div>
+            </div>
+          </div>
+          <div className="w-16 h-6 bg-zinc-300 dark:bg-zinc-700 rounded"></div>
+        </div>
+        <div className="h-12 bg-zinc-300 dark:bg-zinc-700 rounded-xl"></div>
+      </div>
+    );
+  }
 
   if (permission === "denied") {
     return (
