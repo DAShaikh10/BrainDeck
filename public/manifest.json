@@ -1,0 +1,49 @@
+{
+  "id": "/",
+  "name": "BrainDeck - Spaced Repetition Learning",
+  "short_name": "BrainDeck",
+  "description": "Master knowledge with spaced repetition using the Modified Leitner Algorithm. Learn smarter, retain longer.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": [
+    {
+      "src": "/icon.svg",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Study Cards",
+      "short_name": "Study",
+      "description": "Start studying flashcards",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "type": "image/svg+xml",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
