@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { notificationService } from "@/lib/notifications";
+import { debug } from "@/lib/debug";
 
 export function NotificationSettings() {
   const [permission, setPermission] = useState<NotificationPermission>("default");
