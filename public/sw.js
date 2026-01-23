@@ -1,10 +1,15 @@
+const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+const debugLog = (...args) => {
+  if (isDev) console.log(...args);
+};
+
 self.addEventListener("install", () => {
-  console.log("Service Worker installing.");
+  debugLog("Service Worker installing.");
   self.skipWaiting();
 });
 
 self.addEventListener("activate", () => {
-  console.log("Service Worker activating.");
+  debugLog("Service Worker activating.");
   return self.clients.claim();
 });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { debug } from "@/lib/debug";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -51,7 +52,7 @@ export function InstallPrompt() {
     const { outcome } = await deferredPrompt.userChoice;
 
     if (outcome === "accepted") {
-      console.log("PWA installed");
+      debug.log("PWA installed");
     }
 
     setDeferredPrompt(null);

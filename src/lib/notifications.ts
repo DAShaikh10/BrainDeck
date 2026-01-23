@@ -4,6 +4,7 @@
  */
 
 import { showToast } from "@/components/Toast";
+import { debug } from "./debug";
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -23,7 +24,7 @@ export class NotificationService {
    */
   async requestPermission(): Promise<NotificationPermission> {
     if (!("Notification" in window)) {
-      console.warn("This browser does not support notifications");
+      debug.warn("This browser does not support notifications");
       return "denied";
     }
 
@@ -44,7 +45,7 @@ export class NotificationService {
    */
   async initialize(): Promise<void> {
     if (!("serviceWorker" in navigator)) {
-      console.warn("Service Workers not supported");
+      debug.warn("Service Workers not supported");
       return;
     }
 
@@ -56,13 +57,13 @@ export class NotificationService {
 
       try {
         this.registration = await Promise.race([navigator.serviceWorker.ready, timeoutPromise]);
-        console.log("✅ Service Worker ready for notifications");
+        debug.log("✅ Service Worker ready for notifications");
       } catch (readyError) {
-        console.log("⚠️ Service Worker not ready, continuing without it:", readyError);
+        debug.log("⚠️ Service Worker not ready, continuing without it:", readyError);
         // Continue anyway - Notification API will still work
       }
     } catch (error) {
-      console.warn("❌ Service Worker initialization error:", error);
+      debug.warn("❌ Service Worker initialization error:", error);
       // In development, service worker may not be active, but Notification API will still work
     }
   }
@@ -73,7 +74,7 @@ export class NotificationService {
   async scheduleDailyReminder(hour: number = 9, minute: number = 0): Promise<void> {
     const permission = await this.requestPermission();
     if (permission !== "granted") {
-      console.log("Notification permission not granted");
+      debug.log("Notification permission not granted");
       return;
     }
 
@@ -92,8 +93,8 @@ export class NotificationService {
     // Store reminder in localStorage for persistence
     const reminderData = JSON.stringify({ hour, minute, nextReminder: reminderTime.toISOString() });
     localStorage.setItem("braindeck-reminder", reminderData);
-    console.log("✅ Saved reminder to localStorage:", reminderData);
-    console.log("Verification - localStorage now contains:", localStorage.getItem("braindeck-reminder"));
+    debug.log("✅ Saved reminder to localStorage:", reminderData);
+    debug.log("Verification - localStorage now contains:", localStorage.getItem("braindeck-reminder"));
 
     // Schedule the notification
     setTimeout(() => {
@@ -108,10 +109,10 @@ export class NotificationService {
    */
   async showNotification(title: string, body: string, icon: string = "/icon.svg"): Promise<void> {
     const permission = await this.requestPermission();
-    console.log("Notification permission status:", permission);
+    debug.log("Notification permission status:", permission);
 
     if (permission !== "granted") {
-      console.warn("Notification permission not granted");
+      debug.warn("Notification permission not granted");
       // Show browser alert as fallback
       alert(`${title}\n\n${body}`);
       return;
@@ -130,10 +131,10 @@ export class NotificationService {
             url: "/",
           },
         });
-        console.log("✅ Notification shown via Service Worker");
+        debug.log("✅ Notification shown via Service Worker");
       } else {
         // Fallback to regular Notification API
-        console.log("Creating Notification with options:", { title, body, icon });
+        debug.log("Creating Notification with options:", { title, body, icon });
 
         const notification = new Notification(title, {
           body,
@@ -144,27 +145,27 @@ export class NotificationService {
         });
 
         notification.onshow = () => {
-          console.log("✅ Notification displayed successfully");
+          debug.log("✅ Notification displayed successfully");
         };
 
         notification.onerror = (error) => {
-          console.error("❌ Notification error:", error);
+          debug.error("❌ Notification error:", error);
           // Show in-app toast instead
           showToast(title, body, "info");
         };
 
         notification.onclick = () => {
-          console.log("Notification clicked");
+          debug.log("Notification clicked");
           window.focus();
           notification.close();
         };
 
-        console.log("✅ Notification shown via Notification API (fallback)");
+        debug.log("✅ Notification shown via Notification API (fallback)");
         // Show in-app toast as visual confirmation (since browser may suppress notification)
         showToast(title, body, "success");
       }
     } catch (error) {
-      console.error("❌ Failed to show notification:", error);
+      debug.error("❌ Failed to show notification:", error);
       // Show browser alert as last resort
       alert(`${title}\n\n${body}\n\n(Notification API error)`);
     }
@@ -183,8 +184,8 @@ export class NotificationService {
   isReminderEnabled(): boolean {
     const stored = localStorage.getItem("braindeck-reminder");
     const enabled = stored !== null;
-    console.log("📋 isReminderEnabled() - localStorage contains 'braindeck-reminder':", stored);
-    console.log("📋 isReminderEnabled() returning:", enabled);
+    debug.log("📋 isReminderEnabled() - localStorage contains 'braindeck-reminder':", stored);
+    debug.log("📋 isReminderEnabled() returning:", enabled);
     return enabled;
   }
 

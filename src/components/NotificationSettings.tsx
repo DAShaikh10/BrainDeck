@@ -11,56 +11,56 @@ export function NotificationSettings() {
   const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
-    console.log("🔔 NotificationSettings mounted - initializing...");
+    debug.log("🔔 NotificationSettings mounted - initializing...");
 
     // Initialize service and check current state
     const init = async () => {
       try {
-        console.log("Starting notification initialization...");
+        debug.log("Starting notification initialization...");
         try {
           await notificationService.initialize();
-          console.log("✅ NotificationService initialized successfully");
+          debug.log("✅ NotificationService initialized successfully");
         } catch (initError) {
-          console.error("❌ Error initializing NotificationService:", initError);
+          debug.error("❌ Error initializing NotificationService:", initError);
         }
 
         // Check browser's actual notification permission (persisted by browser)
-        console.log("🔔 Checking if Notification API is available...");
+        debug.log("🔔 Checking if Notification API is available...");
         if ("Notification" in window) {
-          console.log("✅ Notification API available");
+          debug.log("✅ Notification API available");
           const currentPermission = Notification.permission;
-          console.log("✅ Current notification permission:", currentPermission);
+          debug.log("✅ Current notification permission:", currentPermission);
           setPermission(currentPermission);
 
           // Always check localStorage for reminder state, regardless of permission
-          console.log("🔔 Checking localStorage for reminders...");
+          debug.log("🔔 Checking localStorage for reminders...");
           const enabled = notificationService.isReminderEnabled();
           const settings = notificationService.getReminderSettings();
 
-          console.log("✅ Reminders enabled in storage:", enabled);
-          console.log("✅ Reminder settings from storage:", settings);
-          console.log("✅ localStorage['braindeck-reminder']:", localStorage.getItem("braindeck-reminder"));
+          debug.log("✅ Reminders enabled in storage:", enabled);
+          debug.log("✅ Reminder settings from storage:", settings);
+          debug.log("✅ localStorage['braindeck-reminder']:", localStorage.getItem("braindeck-reminder"));
 
           setIsEnabled(enabled);
 
           if (settings) {
-            console.log("✅ Restoring reminder time:", settings);
+            debug.log("✅ Restoring reminder time:", settings);
             setReminderTime(settings);
 
             // Re-schedule the reminder (it was lost on page reload since setTimeout doesn't persist)
-            console.log("🔔 Re-scheduling reminder after page reload...");
+            debug.log("🔔 Re-scheduling reminder after page reload...");
             try {
               await notificationService.scheduleDailyReminder(settings.hour, settings.minute);
-              console.log("✅ Reminder re-scheduled successfully");
+              debug.log("✅ Reminder re-scheduled successfully");
             } catch (scheduleError) {
-              console.error("❌ Error re-scheduling reminder:", scheduleError);
+              debug.error("❌ Error re-scheduling reminder:", scheduleError);
             }
           }
         } else {
-          console.warn("⚠️ Notification API not available");
+          debug.warn("⚠️ Notification API not available");
         }
       } catch (error) {
-        console.error("❌ Failed to initialize notification settings:", error);
+        debug.error("❌ Failed to initialize notification settings:", error);
       }
     };
 

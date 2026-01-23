@@ -5,6 +5,7 @@
 
 import type { FlashCard } from "@/types/flashcard";
 import { createNewCard } from "./leitner";
+import { debug } from "./debug";
 
 const CACHE_KEY = "braindeck-api-cache";
 const CACHE_EXPIRY_KEY = "braindeck-cache-expiry";
@@ -43,7 +44,7 @@ async function fetchFromOpenTrivia(amount: number = 5): Promise<FlashCard[]> {
       );
     });
   } catch (error) {
-    console.error("Failed to fetch from Open Trivia:", error);
+    debug.error("Failed to fetch from Open Trivia:", error);
     throw error;
   }
 }
@@ -104,7 +105,7 @@ function cacheFlashcards(cards: FlashCard[]): void {
     localStorage.setItem(CACHE_KEY, JSON.stringify(cards));
     localStorage.setItem(CACHE_EXPIRY_KEY, (Date.now() + CACHE_DURATION).toString());
   } catch (error) {
-    console.warn("Failed to cache flashcards:", error);
+    debug.warn("Failed to cache flashcards:", error);
   }
 }
 
@@ -126,12 +127,12 @@ export async function fetchFlashcards(amount: number = 5): Promise<{
   // Try to fetch from API if online
   if (isOnline()) {
     try {
-      console.log("Fetching flashcards from API...");
+      debug.log("Fetching flashcards from API...");
       const cards = await fetchFromOpenTrivia(amount);
       cacheFlashcards(cards);
       return { cards, isOffline: false, fromCache: false };
     } catch (error) {
-      console.warn("Failed to fetch from API, checking cache...", error);
+      debug.warn("Failed to fetch from API, checking cache...", error);
       // Fall through to cache check
     }
   }
@@ -139,7 +140,7 @@ export async function fetchFlashcards(amount: number = 5): Promise<{
   // Try to use cached data
   const cachedCards = getCachedFlashcards();
   if (cachedCards) {
-    console.log("Using cached flashcards");
+    debug.log("Using cached flashcards");
     return {
       cards: cachedCards,
       isOffline: !isOnline(),
@@ -148,7 +149,7 @@ export async function fetchFlashcards(amount: number = 5): Promise<{
   }
 
   // No cache and offline - this shouldn't happen in normal usage
-  console.warn("No flashcards available and offline");
+  debug.warn("No flashcards available and offline");
   return { cards: [], isOffline: true, fromCache: false };
 }
 
@@ -160,5 +161,5 @@ export function clearFlashcardCache(): void {
 
   localStorage.removeItem(CACHE_KEY);
   localStorage.removeItem(CACHE_EXPIRY_KEY);
-  console.log("Flashcard cache cleared");
+  debug.log("Flashcard cache cleared");
 }

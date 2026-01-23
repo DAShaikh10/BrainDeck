@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { FlashCard, ConfidenceScore } from "@/types/flashcard";
 import { reviewCard, getDueCards, calculateDeckStats, createNewCard } from "@/lib/leitner";
 import { fetchFlashcards, clearFlashcardCache } from "@/lib/flashcardApi";
+import { debug } from "@/lib/debug";
 
 const STORAGE_KEY = "braindeck-cards";
 
@@ -55,7 +56,7 @@ export function useFlashCards() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(demoCards));
       }
     } catch (err) {
-      console.error("Failed to update cards from API:", err);
+      debug.error("Failed to update cards from API:", err);
       setError("Failed to fetch flashcards");
 
       // Fall back to stored or demo cards only if we have no cards
@@ -85,7 +86,7 @@ export function useFlashCards() {
             await updateCardsFromAPI();
             return;
           } catch (error) {
-            console.error("Failed to parse stored cards:", error);
+            debug.error("Failed to parse stored cards:", error);
           }
         }
 
@@ -117,7 +118,7 @@ export function useFlashCards() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCards));
       setCards(updatedCards);
     } catch (error) {
-      console.error("Failed to persist cards:", error);
+      debug.error("Failed to persist cards:", error);
     }
   }, []);
 
