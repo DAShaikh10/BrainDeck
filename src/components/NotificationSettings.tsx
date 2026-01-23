@@ -66,7 +66,7 @@ export function NotificationSettings() {
     init();
 
     return () => {
-      console.log("🔔 NotificationSettings unmounting");
+      debug.log("🔔 NotificationSettings unmounting");
     };
   }, []);
 
