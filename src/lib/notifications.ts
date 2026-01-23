@@ -50,7 +50,7 @@ export class NotificationService {
 
     try {
       // Add a timeout to prevent hanging
-      const timeoutPromise = new Promise<void>((_, reject) =>
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Service Worker registration timeout")), 3000)
       );
 
