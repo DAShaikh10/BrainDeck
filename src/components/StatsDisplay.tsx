@@ -6,7 +6,7 @@ interface StatsDisplayProps {
 
 export function StatsDisplay({ stats }: StatsDisplayProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl mx-auto">
       <StatCard label="Total Cards" value={stats.totalCards} icon="📚" color="blue" />
       <StatCard label="Due Today" value={stats.cardsToReview} icon="⏰" color="orange" />
       <StatCard label="Mastered" value={stats.masteredCards} icon="🏆" color="green" />

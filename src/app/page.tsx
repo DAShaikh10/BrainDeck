@@ -5,6 +5,9 @@ import { useState } from "react";
 import { useFlashCards } from "@/hooks/useFlashCards";
 import { FlashCard } from "@/components/FlashCard";
 import { StatsDisplay } from "@/components/StatsDisplay";
+import { NotificationSettings } from "@/components/NotificationSettings";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { ToastContainer } from "@/components/Toast";
 
 import type { ConfidenceScore } from "@/types/flashcard";
 
@@ -12,7 +15,8 @@ export default function Home() {
   const [reviewedCardIds, setReviewedCardIds] = useState<Set<string>>(new Set());
   const [sessionComplete, setSessionComplete] = useState(false);
 
-  const { dueCards, stats, isLoading, reviewFlashCard, resetDeck } = useFlashCards();
+  const { dueCards, stats, isLoading, isOffline, error, reviewFlashCard, resetDeck, updateCardsFromAPI } =
+    useFlashCards();
 
   // Filter out already reviewed cards from this session
   const sessionCards = dueCards.filter((card) => !reviewedCardIds.has(card.id));
@@ -49,6 +53,41 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-linear-to-br from-zinc-50 via-blue-50 to-purple-50 dark:from-black dark:via-zinc-900 dark:to-black">
       <main className="container mx-auto px-4 py-8 md:py-16">
+        {/* Offline Banner */}
+        {isOffline && (
+          <div className="mb-6 max-w-2xl mx-auto bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📡</span>
+              <div className="flex-1">
+                <div className="font-semibold text-yellow-900 dark:text-yellow-200">You&apos;re Offline</div>
+                <div className="text-sm text-yellow-800 dark:text-yellow-300">
+                  Using cached flashcards. Connect to internet to fetch fresh questions.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 max-w-2xl mx-auto bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">ℹ️</span>
+                <div className="text-sm text-blue-800 dark:text-blue-300">{error}</div>
+              </div>
+              {!isLoading && (
+                <button
+                  onClick={() => updateCardsFromAPI()}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                  Refresh
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
@@ -61,6 +100,11 @@ export default function Home() {
         {/* Statistics */}
         <div className="mb-12">
           <StatsDisplay stats={stats} />
+        </div>
+
+        {/* Notification Settings */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <NotificationSettings />
         </div>
 
         {/* Study Session */}
@@ -136,6 +180,12 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Install Prompt */}
+      <InstallPrompt />
+
+      {/* Toast Notifications */}
+      <ToastContainer />
     </div>
   );
 }

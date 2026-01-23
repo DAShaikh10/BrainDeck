@@ -3,36 +3,113 @@
 import { useState, useEffect, useCallback } from "react";
 import type { FlashCard, ConfidenceScore } from "@/types/flashcard";
 import { reviewCard, getDueCards, calculateDeckStats, createNewCard } from "@/lib/leitner";
+import { fetchFlashcards, clearFlashcardCache } from "@/lib/flashcardApi";
 
 const STORAGE_KEY = "braindeck-cards";
 
 /**
- * Custom hook for managing flashcards with localStorage persistence
- * Implements offline-first state management
+ * Custom hook for managing flashcards with API fetching and offline support
+ * Implements offline-first state management with localStorage persistence
  */
 export function useFlashCards() {
   const [cards, setCards] = useState<FlashCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load cards from localStorage on mount
-  useEffect(() => {
+  // Update cards from API - only replaces if we have no cards yet
+  const updateCardsFromAPI = useCallback(async () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsedCards = JSON.parse(stored) as FlashCard[];
-        setCards(parsedCards);
-      } else {
-        // Initialize with sample cards for demo
-        const sampleCards = initializeSampleCards();
-        setCards(sampleCards);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(sampleCards));
+      const { cards: fetchedCards, isOffline: offline, fromCache } = await fetchFlashcards(8);
+
+      if (fetchedCards.length > 0) {
+        // Only update if we don't have cards yet (initial load)
+        setCards((prevCards) => {
+          // If we already have cards, keep them and don't overwrite with API results
+          if (prevCards.length > 0) {
+            // Just update offline/error state, don't touch the cards
+            return prevCards;
+          }
+          // Only use new API cards if we have nothing yet
+          return fetchedCards;
+        });
+
+        setIsOffline(offline);
+        // Only save to localStorage if we didn't already have cards
+        setCards((prevCards) => {
+          if (prevCards.length === 0 && fetchedCards.length > 0) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(fetchedCards));
+          }
+          return prevCards;
+        });
+
+        if (fromCache) {
+          setError("Using cached flashcards - refresh when online for new cards");
+        } else {
+          setError(null);
+        }
+      } else if (!offline) {
+        setError("Failed to fetch flashcards. Using demo data.");
+        const demoCards = initializeSampleCards();
+        setCards(demoCards);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(demoCards));
       }
-    } catch (error) {
-      console.error("Failed to load cards:", error);
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.error("Failed to update cards from API:", err);
+      setError("Failed to fetch flashcards");
+
+      // Fall back to stored or demo cards only if we have no cards
+      setCards((prevCards) => {
+        if (prevCards.length > 0) return prevCards;
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : initializeSampleCards();
+      });
     }
   }, []);
+
+  // Load cards from localStorage and API on mount
+  useEffect(() => {
+    const initializeCards = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // First check if we have cards in storage
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          try {
+            const parsedCards = JSON.parse(stored) as FlashCard[];
+            setCards(parsedCards);
+            setIsLoading(false);
+            // Try to fetch fresh cards in background
+            await updateCardsFromAPI();
+            return;
+          } catch (error) {
+            console.error("Failed to parse stored cards:", error);
+          }
+        }
+
+        // No stored cards, fetch from API
+        await updateCardsFromAPI();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeCards();
+
+    // Listen for online/offline events
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [updateCardsFromAPI]);
 
   // Persist to localStorage whenever cards change
   const persistCards = useCallback((updatedCards: FlashCard[]) => {
@@ -58,7 +135,7 @@ export function useFlashCards() {
   // Review a card (core Leitner algorithm application)
   const reviewFlashCard = useCallback(
     (cardId: string, confidence: ConfidenceScore) => {
-      const cardIndex = cards.findIndex((c) => c.id === cardId);
+      const cardIndex = cards.findIndex((card) => card.id === cardId);
       if (cardIndex === -1) return null;
 
       const result = reviewCard(cards[cardIndex], confidence);
@@ -89,7 +166,7 @@ export function useFlashCards() {
   // Reset all cards (for testing)
   const resetDeck = useCallback(() => {
     const now = new Date();
-    now.setHours(0, 0, 0, 0); // Reset to midnight
+    now.setHours(0, 0, 0, 0);
     const resetCards = cards.map((card) => ({
       ...card,
       level: 0 as const,
@@ -105,10 +182,14 @@ export function useFlashCards() {
     dueCards,
     stats,
     isLoading,
+    isOffline,
+    error,
     addCard,
     reviewFlashCard,
     deleteCard,
     resetDeck,
+    updateCardsFromAPI,
+    clearCache: clearFlashcardCache,
   };
 }
 
