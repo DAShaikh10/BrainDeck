@@ -9,6 +9,7 @@ import { debug } from "./debug";
 export class NotificationService {
   private static instance: NotificationService;
   private registration: ServiceWorkerRegistration | null = null;
+  private reminderTimeout: number | null = null;
 
   private constructor() {}
 
@@ -70,6 +71,7 @@ export class NotificationService {
 
   /**
    * Schedule a daily reminder notification
+   * Always works in user's local timezone
    */
   async scheduleDailyReminder(hour: number = 9, minute: number = 0): Promise<void> {
     const permission = await this.requestPermission();
@@ -78,30 +80,43 @@ export class NotificationService {
       return;
     }
 
-    // Calculate next reminder time
+    // Calculate next reminder time in user's local timezone
     const now = new Date();
     const reminderTime = new Date();
     reminderTime.setHours(hour, minute, 0, 0);
 
     // If the time has passed today, schedule for tomorrow
-    if (reminderTime < now) {
+    if (reminderTime <= now) {
       reminderTime.setDate(reminderTime.getDate() + 1);
     }
 
     const delay = reminderTime.getTime() - now.getTime();
 
     // Store reminder in localStorage for persistence
-    const reminderData = JSON.stringify({ hour, minute, nextReminder: reminderTime.toISOString() });
+    // Store both the local time (hour/minute) and the next trigger time
+    const reminderData = JSON.stringify({
+      hour,
+      minute,
+      nextReminder: reminderTime.toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
     localStorage.setItem("braindeck-reminder", reminderData);
     debug.log("Saved reminder to localStorage:", reminderData);
-    debug.log("Verification - localStorage now contains:", localStorage.getItem("braindeck-reminder"));
+    debug.log(`Reminder set for ${reminderTime.toLocaleTimeString()} (${delay / 1000 / 60} minutes from now)`);
+
+    // Clear any existing timeout
+    if (this.reminderTimeout) {
+      clearTimeout(this.reminderTimeout);
+    }
 
     // Schedule the notification
-    setTimeout(() => {
+    this.reminderTimeout = setTimeout(() => {
       this.showNotification("Time to study! 🧠", "Your flashcards are waiting. Keep your streak alive!");
       // Reschedule for next day
       this.scheduleDailyReminder(hour, minute);
-    }, delay);
+    }, delay) as unknown as number;
+
+    debug.log(`Next reminder in ${Math.round(delay / 1000 / 60)} minutes at ${reminderTime.toLocaleTimeString()}`);
   }
 
   /**
@@ -175,7 +190,12 @@ export class NotificationService {
    * Cancel all scheduled reminders
    */
   cancelReminders(): void {
+    if (this.reminderTimeout) {
+      clearTimeout(this.reminderTimeout);
+      this.reminderTimeout = null;
+    }
     localStorage.removeItem("braindeck-reminder");
+    debug.log("Reminders cancelled and cleared from localStorage");
   }
 
   /**
