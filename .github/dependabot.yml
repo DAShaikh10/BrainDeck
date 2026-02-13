@@ -6,6 +6,10 @@
 version: 2
 updates:
   - package-ecosystem: "npm" # Enable version updates for pnpm
+    assignees: ["DAShaikh10"]
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "build(deps)"
+      prefix-development: "build(deps-dev)"
