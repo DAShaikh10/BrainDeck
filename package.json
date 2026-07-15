@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
-    "@commitlint/config-conventional": "^21.0.2",
+    "@commitlint/config-conventional": "^21.2.0",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^26",
