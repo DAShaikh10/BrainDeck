@@ -21,25 +21,25 @@
     ]
   },
   "dependencies": {
-    "next": "16.2.11",
+    "next": "16.3.5",
     "react": "19.2.7",
     "react-dom": "19.2.7"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.1",
-    "@commitlint/config-conventional": "^21.2.0",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@ducanh2912/next-pwa": "^10.2.9",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^26",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9",
+    "eslint": "^9.39.5",
     "eslint-config-next": "16.2.11",
     "husky": "^9.1.7",
-    "lint-staged": "^17.1.1",
-    "prettier": "^3.9.6",
-    "tailwindcss": "^4",
-    "typescript": "^6"
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.8",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3"
   }
 }
